@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rule Engine</title>
+</head>
+<body>
+    <h1>Rule Engine Test</h1>
+
+    <h2>Create Rule</h2>
+    <form id="ruleForm">
+        <label for="rule">Enter Rule:</label>
+        <input type="text" id="rule" name="rule" required>
+        <button type="submit">Create Rule</button>
+    </form>
+    <p id="response"></p>
+
+    <h2>Evaluate Rule</h2>
+    <form id="evaluateForm">
+        <label for="ruleId">Rule ID:</label>
+        <input type="number" id="ruleId" name="ruleId" required>
+        
+        <label for="userData">User Data (JSON):</label>
+        <input type="text" id="userData" name="userData" placeholder='{"age": 35, "department": "Sales", "salary": 60000, "experience": 3}' required>
+        
+        <button type="submit">Evaluate Rule</button>
+    </form>
+    <p id="evaluateResponse"></p>
+
+    <h2>Modify Rule</h2>
+    <form id="modifyForm">
+        <label for="modifyRuleId">Rule ID:</label>
+        <input type="text" id="modifyRuleId" name="modifyRuleId" required>
+        <label for="newRule">New Rule:</label>
+        <input type="text" id="newRule" name="newRule" required>
+        <button type="submit">Modify Rule</button>
+    </form>
+    <p id="modifyResponse"></p> 
+
+    <script>
+        // Create Rule Submission
+        document.getElementById('ruleForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const rule = document.getElementById('rule').value;
+            const response = await fetch('/create_rule/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({rule_string: rule})
+            });
+            
+            const result = await response.json();
+            document.getElementById('response').textContent = response.ok ? JSON.stringify(result) : JSON.stringify(result);
+            document.getElementById('ruleForm').reset(); // Reset form after submission
+        };
+
+        // Evaluate Rule Submission
+        document.getElementById('evaluateForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const ruleId = document.getElementById('ruleId').value;
+            const userData = document.getElementById('userData').value;
+
+            try {
+                const response = await fetch('/evaluate_rule/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({rule_id: ruleId, user_data: JSON.parse(userData)})
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const result = await response.json();
+                document.getElementById('evaluateResponse').textContent = JSON.stringify(result);
+            } catch (error) {
+                document.getElementById('evaluateResponse').textContent = `Error: ${error.message}`;
+            }
+        };
+
+        // Modify Rule Submission
+        document.getElementById('modifyForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const modifyRuleId = document.getElementById('modifyRuleId').value;
+            const newRule = document.getElementById('newRule').value;
+
+            try {
+                const response = await fetch('/modify_rule/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({rule_id: modifyRuleId, new_rule: newRule})
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                document.getElementById('modifyResponse').textContent = JSON.stringify(result);
+                document.getElementById('modifyForm').reset(); // Reset form after submission
+            } catch (error) {
+                document.getElementById('modifyResponse').textContent = `Error: ${error.message}`;
+            }
+        };
+    </script>
+</body>
+</html>
